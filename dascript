@@ -1,0 +1,120 @@
+local Material = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = game.Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local SelectSound = Instance.new("Sound")
+SelectSound.SoundId = "rbxassetid://1127797184"
+SelectSound.Name = "SelectSound"
+SelectSound.Parent = workspace
+local DarkMode = true
+local PushDeb = false
+
+local function findPush()
+    local push = game:FindFirstChild("PushTool", true)
+    if push then
+        return push
+    end
+end
+
+local function createPush()
+
+    local pushTool = Instance.new("Tool")
+    pushTool.CanBeDropped = false
+    pushTool.RequiresHandle = false
+    pushTool.Name = "Push"
+    pushTool.Parent = LocalPlayer.Backpack
+
+    pushTool.Activated:Connect(function()
+        if Mouse.Target and Mouse.Target:FindFirstAncestorOfClass("Model"):FindFirstChild("Humanoid") then
+            local push = findPush()
+            print(push:GetFullName())
+            push:FireServer(Mouse.Target.Parent)
+        end
+    end)
+end
+        
+local UI = Material.Load({
+     Title = "RagRuiner ALPHA",
+     Style = 6,
+     SizeX = 600,
+     SizeY = 400,
+     Theme = "Dark"
+})
+
+local Util = UI.New({
+    Title = "Utilities"
+})
+
+local ClientSide = UI.New({
+    Title = "LocalPlayer"
+})
+
+local Credits = UI.New({
+    Title = "Credits"
+})
+
+local PushConn = nil
+
+local GetPush = Util.Button({
+    Text = "Get Push",
+    Callback = function()
+        createPush()
+        SelectSound:Play()
+    end
+})
+
+local ToggleAutoPush = Util.Toggle({
+    Text = "Auto Push",
+    Callback = function(val)
+        SelectSound:Play()
+        if val then
+            PushConn = RunService.Heartbeat:Connect(function()
+                for _, char in ipairs(workspace:GetChildren()) do
+                   if char:FindFirstChild("Head") and char ~= LocalPlayer.Character and (char.Head.Position - LocalPlayer.Character.Head.Position).Magnitude <= 5 then
+                       findPush():FireServer(char)
+                   end
+                end
+            end)
+        elseif PushConn then
+        PushConn:Disconnect()
+    end
+end,
+})
+
+local ToggleAntiRagdoll = Util.Toggle({
+    Text = "Anti Ragdoll",
+    Callback = function(val)
+    
+    end,
+})
+
+local WalkSpeedSlider = ClientSide.Slider({
+    Text = "WalkSpeed",
+    Callback = function(val)
+        LocalPlayer.Character.Humanoid.WalkSpeed = val
+    end,
+    Min = 0,
+    Max = 300,
+    Def = 16
+})
+
+local GravitySlider = ClientSide.Slider({
+    Text = "Gravity",
+    Callback = function(val)
+        workspace.Gravity = val
+    end,
+    Min = 0,
+    Max = 200,
+    Def = 196
+})
+
+local JumpPowerSlider = ClientSide.Slider({
+    Text = "JumpPower",
+    Callback = function(val)
+        LocalPlayer.Character.Humanoid.JumpPower = val
+    end,
+    Min = 0,
+    Max = 500,
+    Def = 50
+})
